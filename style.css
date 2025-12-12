@@ -1,58 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const revealElements = document.querySelectorAll(".reveal");
-    const skillsSection = document.querySelector("#skills");
-    const skillItems = skillsSection ? skillsSection.querySelectorAll("ul li") : [];
-    const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add("visible");
-            if (entry.target.id === "skills") {
-                entry.target.classList.add("revealed");
-                skillItems.forEach((item, i) => {
-                    item.style.transitionDelay = `${i * 0.12}s`;
-                    item.style.opacity = "1";
-                    item.style.transform = "translateY(0)";
-                });
-            }
-            obs.unobserve(entry.target);
-        });
-    }, { threshold: 0.12 });
-    revealElements.forEach(el => observer.observe(el));
-    const themeBtn = document.getElementById("themeBtn");
-    const body = document.body;
-    const setTheme = mode => {
-        if (mode === "dark") {
-            body.classList.add("dark");
-            if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-            localStorage.setItem("theme", "dark");
-        } else {
-            body.classList.remove("dark");
-            if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-            localStorage.setItem("theme", "light");
-        }
-    };
-    setTheme(localStorage.getItem("theme") === "dark" ? "dark" : "light");
-    if (themeBtn) themeBtn.addEventListener("click", () => {
-        setTheme(body.classList.contains("dark") ? "light" : "dark");
-        document.body.classList.add("theme-fade");
-        setTimeout(() => document.body.classList.remove("theme-fade"), 380);
-    });
-    const form = document.getElementById("contactForm");
-    if (form) form.addEventListener("submit", e => {
-        e.preventDefault();
-        const name = document.getElementById("name");
-        const email = document.getElementById("email");
-        const message = document.getElementById("message");
-        if (!name.value.trim() || !email.value.trim() || !message.value.trim()) {
-            alert("Please fill out all fields.");
-            return;
-        }
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email.value.trim())) {
-            alert("Please enter a valid email address.");
-            return;
-        }
-        alert("Thanks! Your message has been received.");
-        form.reset();
-    });
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const body = document.body, themeBtn = document.getElementById("themeBtn"), skills = document.querySelector("#skills");
+  const reveals = Array.from(document.querySelectorAll(".reveal")), skillItems = skills ? Array.from(skills.querySelectorAll("ul li")) : [];
+  let toast = document.getElementById("toast") || Object.assign(document.createElement("div"), { id:"toast" });
+  if (!toast.parentNode) { toast.setAttribute("role","status"); toast.setAttribute("aria-live","polite"); Object.assign(toast.style,{position:"fixed",right:"1rem",bottom:"1rem",zIndex:9999,minWidth:"200px",opacity:0,transition:"opacity .25s"}); body.appendChild(toast); }
+  const showToast = msg => { toast.textContent=msg; toast.style.opacity=1; setTimeout(()=>toast.style.opacity=0,3500); };
+
+  const obs = new IntersectionObserver((entries, o) => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add("visible");
+    if (entry.target.id === "skills") { entry.target.classList.add("revealed"); skillItems.forEach((it,i)=>{ if(!prefersReduced) it.style.transitionDelay = `${i*0.12}s`; it.style.opacity="1"; it.style.transform="translateY(0)"; }); }
+    o.unobserve(entry.target);
+  }), { threshold: 0.12 });
+  reveals.forEach(r => obs.observe(r)); if (skills && !reveals.includes(skills)) obs.observe(skills);
+
+  const stored = localStorage.getItem("theme");
+  const preferred = stored || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const setTheme = mode => { body.classList.toggle("dark", mode==="dark"); if (themeBtn) { themeBtn.setAttribute("aria-pressed", mode==="dark"); themeBtn.setAttribute("aria-label", mode==="dark" ? "Switch to light theme" : "Switch to dark theme"); themeBtn.innerHTML = mode==="dark" ? '<i class="fa-solid fa-sun" aria-hidden="true"></i>' : '<i class="fa-solid fa-moon" aria-hidden="true"></i>'; } localStorage.setItem("theme", mode); };
+  setTheme(preferred);
+  if (themeBtn) themeBtn.addEventListener("click", () => { setTheme(body.classList.contains("dark") ? "light" : "dark"); if (!prefersReduced) { body.classList.add("theme-fade"); setTimeout(()=>body.classList.remove("theme-fade"),380); } });
+
+  const form = document.getElementById("contactForm");
+  if (form) form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!form.checkValidity()) { const f = form.querySelector(":invalid"); if (f) f.focus(); showToast("Please fill required fields."); return; }
+    const email = form.querySelector("#email"), pat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !pat.test(email.value.trim())) { email.setCustomValidity("Invalid email."); email.reportValidity(); email.focus(); return; }
+    showToast("Thanks! Your message has been received."); form.reset(); if (email) email.setCustomValidity("");
+  });
 });
+
