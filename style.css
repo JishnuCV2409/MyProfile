@@ -1,0 +1,18 @@
+.profile {
+    text-align: center;
+    font-style: italic;
+    font-weight: bolder;
+    background-color: aquamarine;
+    margin: 350px;
+    border: 3px solid black;
+}
+
+body {
+    background-color: rgb(253, 253, 253);
+}
+
+.Skills {
+    font-size: xx-large;
+    text-align: center;
+
+}
