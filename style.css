@@ -1,32 +1,194 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const body = document.body, themeBtn = document.getElementById("themeBtn"), skills = document.querySelector("#skills");
-  const reveals = Array.from(document.querySelectorAll(".reveal")), skillItems = skills ? Array.from(skills.querySelectorAll("ul li")) : [];
-  let toast = document.getElementById("toast") || Object.assign(document.createElement("div"), { id:"toast" });
-  if (!toast.parentNode) { toast.setAttribute("role","status"); toast.setAttribute("aria-live","polite"); Object.assign(toast.style,{position:"fixed",right:"1rem",bottom:"1rem",zIndex:9999,minWidth:"200px",opacity:0,transition:"opacity .25s"}); body.appendChild(toast); }
-  const showToast = msg => { toast.textContent=msg; toast.style.opacity=1; setTimeout(()=>toast.style.opacity=0,3500); };
+body,
+.card,
+#skills ul li,
+nav,
+footer,
+section {
+    transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease
+}
 
-  const obs = new IntersectionObserver((entries, o) => entries.forEach(entry => {
-    if (!entry.isIntersecting) return;
-    entry.target.classList.add("visible");
-    if (entry.target.id === "skills") { entry.target.classList.add("revealed"); skillItems.forEach((it,i)=>{ if(!prefersReduced) it.style.transitionDelay = `${i*0.12}s`; it.style.opacity="1"; it.style.transform="translateY(0)"; }); }
-    o.unobserve(entry.target);
-  }), { threshold: 0.12 });
-  reveals.forEach(r => obs.observe(r)); if (skills && !reveals.includes(skills)) obs.observe(skills);
+body {
+    background: #f3f3f3;
+    color: #222;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial
+}
 
-  const stored = localStorage.getItem("theme");
-  const preferred = stored || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  const setTheme = mode => { body.classList.toggle("dark", mode==="dark"); if (themeBtn) { themeBtn.setAttribute("aria-pressed", mode==="dark"); themeBtn.setAttribute("aria-label", mode==="dark" ? "Switch to light theme" : "Switch to dark theme"); themeBtn.innerHTML = mode==="dark" ? '<i class="fa-solid fa-sun" aria-hidden="true"></i>' : '<i class="fa-solid fa-moon" aria-hidden="true"></i>'; } localStorage.setItem("theme", mode); };
-  setTheme(preferred);
-  if (themeBtn) themeBtn.addEventListener("click", () => { setTheme(body.classList.contains("dark") ? "light" : "dark"); if (!prefersReduced) { body.classList.add("theme-fade"); setTimeout(()=>body.classList.remove("theme-fade"),380); } });
+nav,
+footer,
+section {
+    background: #ffffff
+}
 
-  const form = document.getElementById("contactForm");
-  if (form) form.addEventListener("submit", e => {
-    e.preventDefault();
-    if (!form.checkValidity()) { const f = form.querySelector(":invalid"); if (f) f.focus(); showToast("Please fill required fields."); return; }
-    const email = form.querySelector("#email"), pat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email && !pat.test(email.value.trim())) { email.setCustomValidity("Invalid email."); email.reportValidity(); email.focus(); return; }
-    showToast("Thanks! Your message has been received."); form.reset(); if (email) email.setCustomValidity("");
-  });
-});
+#skills {
+    background: #e5e5e5;
+    padding: 20px;
+    border-radius: 12px
+}
+
+#skills h2 {
+    margin-bottom: 12px;
+    font-size: 1.25rem
+}
+
+#skills ul {
+    padding-left: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px
+}
+
+#skills ul li {
+    list-style: none;
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border-left: 4px solid silver;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: transform 0.38s cubic-bezier(.2, .9, .2, 1), box-shadow 0.28s ease, opacity 0.35s ease;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05)
+}
+
+#skills.revealed ul li {
+    opacity: 1;
+    transform: translateY(0)
+}
+
+.card {
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    transition: transform 0.28s ease, box-shadow 0.28s ease
+}
+
+.card:hover,
+.card:focus-within {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12)
+}
+
+.btn {
+    transition: transform 0.22s ease, filter 0.22s ease, box-shadow 0.22s ease
+}
+
+.btn:hover,
+.btn:focus {
+    transform: translateY(-3px);
+    filter: brightness(1.03)
+}
+
+.btn-primary {
+    background: silver;
+    border: none;
+    color: #222
+}
+
+.btn-outline-secondary {
+    border-color: silver;
+    color: #222
+}
+
+.btn-outline-secondary:hover {
+    background: silver;
+    color: #000
+}
+
+.theme-fade * {
+    transition: opacity 0.35s ease, transform 0.28s ease !important
+}
+
+.theme-fade {
+    opacity: 0.98
+}
+
+@keyframes ambientPulse {
+    0% {
+        transform: scale(1)
+    }
+
+    50% {
+        transform: scale(1.003)
+    }
+
+    100% {
+        transform: scale(1)
+    }
+}
+
+.navbar,
+.card {
+    animation: ambientPulse 6s ease-in-out infinite;
+    animation-delay: .6s;
+    opacity: .999
+}
+
+/* dark */
+body.dark {
+    background: #1a0000;
+    color: #f8dada
+}
+
+body.dark section,
+body.dark nav,
+body.dark footer {
+    background: #2b0000;
+    color: #ffdddd;
+    box-shadow: 0 3px 12px rgba(255, 80, 80, 0.15)
+}
+
+body.dark nav.navbar {
+    background: #2d0000 !important;
+    box-shadow: 0 2px 14px rgba(255, 50, 50, 0.2)
+}
+
+body.dark a.nav-link {
+    color: #ffbcbc !important
+}
+
+body.dark #skills {
+    background: #330000
+}
+
+body.dark #skills ul li {
+    background: #440000;
+    color: #ffdada;
+    border-left: 4px solid #ff4444;
+    box-shadow: 0 3px 10px rgba(255, 40, 40, 0.1)
+}
+
+body.dark #skills ul li:hover {
+    box-shadow: 0 8px 24px rgba(255, 60, 60, 0.14);
+    transform: translateY(-6px) scale(1.01)
+}
+
+body.dark .card {
+    background: #3a0000;
+    color: #ffdada;
+    box-shadow: 0 3px 12px rgba(255, 70, 70, 0.15)
+}
+
+body.dark .btn-primary {
+    background: #ff4444;
+    color: #fff
+}
+
+body.dark .btn-outline-secondary {
+    border-color: #ff4444;
+    color: #ffbbbb
+}
+
+body.dark .btn-outline-secondary:hover {
+    background: #ff4444;
+    color: #fff
+}
+
+body.dark #themeBtn {
+    color: #ff9999;
+    border-color: #ff9999
+}
+
+body.dark #themeBtn i {
+    color: #ffb3b3
+}
 
